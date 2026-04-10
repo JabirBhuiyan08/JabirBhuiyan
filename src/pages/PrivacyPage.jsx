@@ -1,0 +1,42 @@
+import { useQuery } from "@tanstack/react-query";
+import { motion } from "framer-motion";
+import { Calendar } from "lucide-react";
+import SeoHead from "../components/SeoHead";
+import useSeo  from "../hooks/useSeo";
+import api     from "../lib/api";
+
+export default function PrivacyPage() {
+  const { data: page = {} } = useQuery({
+    queryKey: ["legal", "privacy"],
+    queryFn: () => api.get("/api/legal/privacy").then(r => r.data),
+  });
+
+  const seo = useSeo("privacy", {
+    title: page.title || "Privacy Policy",
+    description: "How we handle your data.",
+  });
+
+  return (
+    <>
+      <SeoHead seo={seo} />
+      <div style={{ padding: "3rem", maxWidth: 760 }}>
+        <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}>
+          <h1 style={{ fontSize: "2.2rem", fontWeight: 800, marginBottom: "0.75rem" }}>
+            {page.title || "Privacy Policy"}
+          </h1>
+          {page.updatedAt && (
+            <p style={{ display: "flex", alignItems: "center", gap: 6,
+              color: "var(--text3)", fontSize: "0.82rem", marginBottom: "2rem" }}>
+              <Calendar size={13} />
+              Last updated {new Date(page.updatedAt).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })}
+            </p>
+          )}
+          <div
+            style={{ color: "var(--text2)", lineHeight: 1.85, fontSize: "0.95rem" }}
+            dangerouslySetInnerHTML={{ __html: page.content || "<p>Content coming soon.</p>" }}
+          />
+        </motion.div>
+      </div>
+    </>
+  );
+}
