@@ -6,11 +6,21 @@ import { Link } from "react-router-dom";
 import { ArrowRight } from "lucide-react";
 import api from "../lib/api";
 
+const uniqueCategories = (items = []) => {
+  const seen = new Set();
+  return ["All", ...items].filter((item) => {
+    const key = String(item || "").trim().toLowerCase();
+    if (!key || seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+};
+
 export default function BlogList() {
   const [active, setActive] = useState("All");
   const { data: blogs=[] } = useQuery({ queryKey:["blogs"],    queryFn:()=>api.get("/api/blogs").then(r=>r.data) });
   const { data: cfg={} }   = useQuery({ queryKey:["settings"], queryFn:()=>api.get("/api/settings").then(r=>r.data) });
-  const cats = ["All",...(cfg.blogCategories||[])];
+  const cats = uniqueCategories(cfg.blogCategories);
   const list = active==="All" ? blogs : blogs.filter(b=>b.category===active);
 
   return (

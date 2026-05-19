@@ -2,12 +2,34 @@ import { useState } from "react";
 import { Outlet, NavLink, Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
+import { Helmet } from "react-helmet-async";
 import {
   Home, Briefcase, Layers, BookOpen, FileText,
   MessageSquare, MapPin, Mail, Github, Linkedin,
-  Twitter, Instagram, Youtube, Menu, X,
+  Twitter, Instagram, Youtube, Menu, X, Sparkles,
+  ChevronRight,
 } from "lucide-react";
 import api from "../../lib/api";
+
+/* ═══════════════════════════════════════════════════════
+   DESIGN TOKENS
+═════════════════════════════════════════════════════════ */
+const T = {
+  surface:   "var(--surface)",
+  bgAlt:     "var(--bg-alt)",
+  bgHover:   "var(--bg-hover)",
+  border:    "var(--border)",
+  borderLt:  "var(--border-light)",
+  text:      "var(--text)",
+  textSec:   "var(--text-secondary)",
+  textMuted: "var(--text-muted)",
+  textLt:    "var(--text-light)",
+  accent:    "var(--accent)",
+  accentLt:  "var(--accent-light)",
+  success:   "var(--success)",
+  r:         "var(--r)",
+  r2:        "var(--r2)",
+};
 
 const NAV = [
   { to: "/",         label: "Home",     icon: Home,         end: true },
@@ -23,292 +45,916 @@ const SOCIAL_ICONS = {
   instagram: Instagram, youtube: Youtube,
 };
 
+
+
+/* ═══════════════════════════════════════════════════════
+   COMPONENTS
+═════════════════════════════════════════════════════════ */
+
+function SocialIcon({ name, url }) {
+  const Icon = SOCIAL_ICONS[name];
+  if (!Icon) return null;
+  return (
+    <motion.a
+      href={url}
+      target="_blank"
+      rel="noreferrer"
+      className="social-icon"
+      whileHover={{ y: -2, scale: 1.05 }}
+      transition={{ duration: 0.2 }}
+    >
+      <Icon size={16} />
+    </motion.a>
+  );
+}
+
+function InfoRow({ icon, text, isLink = false }) {
+  if (isLink) {
+    return (
+      <motion.a
+        href={`mailto:${text}`}
+        className="info-row"
+        whileHover={{ x: 3 }}
+        transition={{ duration: 0.2 }}
+      >
+        <span className="info-icon">{icon}</span>
+        <span className="info-text">{text}</span>
+      </motion.a>
+    );
+  }
+  return (
+    <div className="info-row">
+      <span className="info-icon">{icon}</span>
+      <span className="info-text">{text}</span>
+    </div>
+  );
+}
+
+function MobileMenuItem({ to, label, icon: Icon, end, onClose }) {
+  return (
+    <NavLink to={to} end={end} onClick={onClose} className={({ isActive }) => `mobile-nav-item ${isActive ? "active" : ""}`}>
+      {({ isActive }) => (
+        <>
+          <Icon size={18} className="mobile-nav-icon" />
+          <span>{label}</span>
+          {isActive && <div className="active-indicator" />}
+        </>
+      )}
+    </NavLink>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════
+   MAIN LAYOUT
+═════════════════════════════════════════════════════════ */
 export default function PublicLayout() {
-  const [open, setOpen] = useState(false);
-  const { data: profile  = {} } = useQuery({ queryKey: ["profile"],  queryFn: () => api.get("/api/profile").then(r => r.data) });
-  const { data: settings = {} } = useQuery({ queryKey: ["settings"], queryFn: () => api.get("/api/settings").then(r => r.data) });
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  const { data: profile = {} } = useQuery({
+    queryKey: ["profile"],
+    queryFn: () => api.get("/api/profile").then(r => r.data),
+  });
+  const { data: settings = {} } = useQuery({
+    queryKey: ["settings"],
+    queryFn: () => api.get("/api/settings").then(r => r.data),
+  });
 
   const socials = Object.entries(profile.socials || {}).filter(([, v]) => !!v);
+  const name = profile.name || settings.siteTitle || "Portfolio";
+  const initials = name.split(" ").filter(Boolean).slice(0, 2).map(p => p[0]).join("");
+  const profileImage = profile.avatarUrl || "https://res.cloudinary.com/dgmd4ps5e/image/upload/v1773940195/portfolio/lopn6ibgwntb1vwjyxym.jpg";
 
   return (
-    <div className="layout-root">
-      {/* ─── SIDEBAR ─── */}
-      <aside className="layout-sidebar">
-
-        {/* Profile block - Desktop */}
-        <div className="sb-profile" style={{
-          padding: "2rem 1.5rem 1.5rem",
-          borderBottom: "1px solid var(--border)",
-          textAlign: "center",
-        }}>
-          {profile.avatarUrl ? (
-            <img src={profile.avatarUrl} alt={profile.name}
-              style={{
-                width: 72, height: 72, borderRadius: "50%",
-                objectFit: "cover", margin: "0 auto 1rem",
-                border: "2px solid var(--border)",
-              }} />
-          ) : (
-            <div style={{
-              width: 72, height: 72, borderRadius: "50%",
-              background: "var(--bg-alt)", margin: "0 auto 1rem",
-              border: "2px solid var(--border)",
-              display: "flex", alignItems: "center", justifyContent: "center",
-              fontFamily: "var(--font-display)", fontSize: "1.75rem",
-              fontWeight: 600, color: "var(--text-muted)",
-            }}>
-              {(profile.name || "P")[0]}
+    <>
+      <Helmet>
+        <link rel="icon" href="/favicon.ico" type="image/x-icon" />
+        <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+      </Helmet>
+      <div className="public-layout">
+      {/* ═══════════════════════════════════════════
+          DESKTOP SIDEBAR (≥ 961px)
+      ═══════════════════════════════════════════ */}
+      <aside className="desktop-sidebar">
+        {/* Profile Section with Image */}
+        <div className="sidebar-profile">
+          <div className="avatar-container">
+            <div className="avatar-ring" />
+            <div className="avatar">
+              <img src={profileImage} alt={name} />
             </div>
-          )}
+            {profile.openToWork && (
+              <div className="status-badge available" />
+            )}
+          </div>
 
-          <h1 style={{
-            fontFamily: "var(--font-display)",
-            fontSize: "1.35rem",
-            fontWeight: 600,
-            marginBottom: "0.35rem",
-            color: "var(--text)",
-          }}>
-            {profile.name || settings.siteTitle || "Portfolio"}
-          </h1>
-
-          <p style={{ 
-            fontSize: "0.85rem", 
-            color: "var(--text-secondary)",
-            marginBottom: "0.75rem" 
-          }}>
-            {profile.profession || settings.tagline || ""}
-          </p>
+          <h1 className="sidebar-name">{name}</h1>
+          <p className="sidebar-title">{profile.profession || settings.tagline || "Creative Developer"}</p>
 
           {profile.openToWork && (
-            <span style={{
-              display: "inline-flex", alignItems: "center", gap: 5,
-              background: "rgba(39, 103, 73, 0.1)", color: "var(--success)",
-              borderRadius: "var(--r)", padding: "4px 10px",
-              fontSize: "0.65rem", fontWeight: 600,
-              letterSpacing: "0.05em", textTransform: "uppercase",
-            }}>
-              <span style={{ width: 5, height: 5, borderRadius: "50%",
-                background: "var(--success)", display: "inline-block" }} />
-              Available
-            </span>
+            <div className="availability-chip">
+              <Sparkles size={12} />
+              <span>Available for work</span>
+            </div>
           )}
         </div>
 
-        {/* Contact info - Desktop */}
-        <div className="sb-info" style={{
-          padding: "1rem 1.5rem",
-          borderBottom: "1px solid var(--border)",
-          display: "flex", flexDirection: "column", gap: "0.5rem",
-        }}>
-          {profile.location && (
-            <InfoRow icon={<MapPin size={12} color="var(--text-muted)" />} text={profile.location} />
-          )}
-          {profile.email && (
-            <InfoRow icon={<Mail size={12} color="var(--text-muted)" />}
-              text={<a href={`mailto:${profile.email}`}
-                style={{ color: "var(--accent)", transition: "color 0.15s" }}
-                onMouseEnter={e => e.target.style.color = "var(--accent-light)"}
-                onMouseLeave={e => e.target.style.color = "var(--accent)"}>
-                {profile.email}
-              </a>} />
-          )}
-        </div>
-
-        {/* Socials - Desktop */}
-        {socials.length > 0 && (
-          <div className="sb-socials" style={{
-            padding: "1rem 1.5rem",
-            borderBottom: "1px solid var(--border)",
-            display: "flex", gap: "0.5rem",
-          }}>
-            {socials.map(([key, url]) => {
-              const Icon = SOCIAL_ICONS[key];
-              if (!Icon) return null;
-              return (
-                <a key={key} href={url} target="_blank" rel="noreferrer"
-                  style={{
-                    width: 32, height: 32, borderRadius: "var(--r)",
-                    border: "1px solid var(--border)",
-                    display: "flex", alignItems: "center", justifyContent: "center",
-                    color: "var(--text-muted)", transition: "all 0.15s",
-                    background: "transparent",
-                  }}
-                  onMouseEnter={e => { 
-                    e.currentTarget.style.color = "var(--accent)"; 
-                    e.currentTarget.style.borderColor = "var(--accent)"; 
-                    e.currentTarget.style.background = "var(--bg-alt)"; 
-                  }}
-                  onMouseLeave={e => { 
-                    e.currentTarget.style.color = "var(--text-muted)"; 
-                    e.currentTarget.style.borderColor = "var(--border)"; 
-                    e.currentTarget.style.background = "transparent"; 
-                  }}>
-                  <Icon size={14} />
-                </a>
-              );
-            })}
+        {/* Contact Info */}
+        {(profile.location || profile.email) && (
+          <div className="sidebar-contact">
+            {profile.location && (
+              <InfoRow icon={<MapPin size={13} />} text={profile.location} />
+            )}
+            {profile.email && (
+              <InfoRow icon={<Mail size={13} />} text={profile.email} isLink />
+            )}
           </div>
         )}
 
-        {/* Nav - Desktop */}
-        <nav className="sb-nav" style={{
-          flex: 1, padding: "1rem 0.75rem",
-          display: "flex", flexDirection: "column", gap: "0.25rem",
-        }}>
-          {NAV.map(({ to, label, icon: Icon, end }) => (
-            <NavLink key={to} to={to} end={end}
-              style={({ isActive }) => ({
-                display: "flex", alignItems: "center", gap: 10,
-                padding: "0.6rem 0.85rem",
-                borderRadius: "var(--r)",
-                fontFamily: "var(--font-body)",
-                fontSize: "0.9rem",
-                fontWeight: isActive ? 600 : 400,
-                transition: "all 0.15s",
-                color: isActive ? "var(--accent)" : "var(--text-secondary)",
-                background: isActive ? "var(--bg-alt)" : "transparent",
-              })}>
-              <Icon size={14} strokeWidth={1.8} />
-              {label}
+        {/* Social Links */}
+        {socials.length > 0 && (
+          <div className="sidebar-socials">
+            {socials.map(([key, url]) => (
+              <SocialIcon key={key} name={key} url={url} />
+            ))}
+          </div>
+        )}
+
+        {/* Navigation */}
+        <nav className="sidebar-nav">
+          {NAV.map((item) => (
+            <NavLink 
+              key={item.to} 
+              to={item.to} 
+              end={item.end} 
+              className={({ isActive }) => `nav-link ${isActive ? "active" : ""}`}
+            >
+              {({ isActive }) => (
+                <>
+                  <item.icon size={18} className={isActive ? "nav-icon-active" : "nav-icon"} />
+                  <span>{item.label}</span>
+                  <ChevronRight size={14} className={`nav-arrow ${isActive ? "arrow-active" : ""}`} />
+                  {isActive && <div className="active-dot" />}
+                </>
+              )}
             </NavLink>
           ))}
         </nav>
 
-        {/* Footer - Desktop */}
-        <div className="sb-footer" style={{
-          padding: "1rem 1.5rem",
-          borderTop: "1px solid var(--border)",
-        }}>
-          <div style={{
-            display: "flex", gap: "1rem",
-            fontSize: "0.7rem", fontWeight: 500,
-            color: "var(--text-light)",
-          }}>
-            <Link to="/terms">Terms</Link>
-            <Link to="/privacy">Privacy</Link>
-            <Link to="/admin/login">Admin</Link>
-          </div>
-        </div>
-
-        {/* ─── MOBILE NAVBAR ─── */}
-        <div className="sb-mobile" style={{
-          display: "flex",
-          width: "100%",
-          alignItems: "center",
-          justifyContent: "space-between",
-          padding: "0 1rem",
-          height: "60px",
-          flexShrink: 0,
-        }}>
-          {/* Left: Name + Available badge */}
-          <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-            <Link to="/" style={{
-              fontFamily: "var(--font-display)", fontWeight: 600,
-              fontSize: "1.1rem", color: "var(--text)",
-            }}>
-              {profile.name || settings.siteTitle || "Portfolio"}
-            </Link>
-            {profile.openToWork && (
-              <span style={{
-                display: "inline-flex", alignItems: "center", gap: 4,
-                background: "rgba(39, 103, 73, 0.1)", color: "var(--success)",
-                borderRadius: "var(--r)", padding: "2px 6px",
-                fontSize: "0.55rem", fontWeight: 600,
-                letterSpacing: "0.05em", textTransform: "uppercase",
-              }}>
-                <span style={{ width: 4, height: 4, borderRadius: "50%",
-                  background: "var(--success)", display: "inline-block" }} />
-              </span>
-            )}
-          </div>
-          
-          {/* Right: Menu button */}
-          <button onClick={() => setOpen(o => !o)}
-            style={{ 
-              background: "none", border: "none", 
-              color: "var(--text-secondary)",
-              padding: "0.5rem", display: "flex", alignItems: "center",
-              cursor: "pointer",
-            }}>
-            {open ? <X size={22} strokeWidth={1.5} /> : <Menu size={22} strokeWidth={1.5} />}
-          </button>
+        {/* Footer Links */}
+        <div className="sidebar-footer">
+          <Link to="/terms">Terms</Link>
+          <Link to="/privacy">Privacy</Link>
+          <Link to="/admin/login">Admin</Link>
         </div>
       </aside>
 
-      {/* Mobile dropdown menu */}
+      {/* ═══════════════════════════════════════════
+          MOBILE HEADER (≤ 960px)
+      ═══════════════════════════════════════════ */}
+      <header className="mobile-header">
+        <Link to="/" className="mobile-logo">
+          <div className="mobile-logo-text">
+            <span className="mobile-name">{name}</span>
+            {profile.openToWork && (
+              <span className="mobile-dot" />
+            )}
+          </div>
+        </Link>
+
+        <button
+          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+          className="menu-button"
+          aria-label={mobileMenuOpen ? "Close menu" : "Open menu"}
+        >
+          {mobileMenuOpen ? <X size={22} /> : <Menu size={22} />}
+        </button>
+      </header>
+
+      {/* Mobile Menu Drawer */}
       <AnimatePresence>
-        {open && (
+        {mobileMenuOpen && (
           <motion.div
-            initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -4 }} transition={{ duration: 0.15 }}
-            style={{
-              position: "fixed", top: 60, left: 0, right: 0, zIndex: 60,
-              background: "var(--surface)", borderBottom: "1px solid var(--border)",
-              padding: "0.5rem",
-              display: "flex", flexDirection: "column",
-            }}>
-            {NAV.map(({ to, label, icon: Icon, end }) => (
-              <NavLink key={to} to={to} end={end} onClick={() => setOpen(false)}
-                style={({ isActive }) => ({
-                  display: "flex", alignItems: "center", gap: 10,
-                  padding: "0.75rem 1rem", borderRadius: "var(--r)",
-                  fontFamily: "var(--font-body)",
-                  fontSize: "0.95rem", fontWeight: isActive ? 600 : 400,
-                  color: isActive ? "var(--accent)" : "var(--text-secondary)",
-                  background: isActive ? "var(--bg-alt)" : "transparent",
-                })}>
-                <Icon size={16} strokeWidth={1.8} />{label}
-              </NavLink>
-            ))}
-            {/* Mobile footer links */}
-            <div style={{ 
-              borderTop: "1px solid var(--border)", 
-              padding: "0.75rem 1rem",
-              display: "flex", gap: "1.5rem",
-              fontSize: "0.75rem", fontWeight: 500, 
-              color: "var(--text-light)",
-            }}>
-              <Link to="/terms" onClick={() => setOpen(false)}>Terms</Link>
-              <Link to="/privacy" onClick={() => setOpen(false)}>Privacy</Link>
-              <Link to="/admin/login" onClick={() => setOpen(false)}>Admin</Link>
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.25 }}
+            className="mobile-drawer"
+          >
+            {/* Mobile Profile Section with Image */}
+            <div className="mobile-profile">
+              <div className="mobile-avatar-large">
+                <img src={profileImage} alt={name} />
+              </div>
+              <h3 className="mobile-profile-name">{name}</h3>
+              <p className="mobile-profile-title">{profile.profession || settings.tagline || "Creative Developer"}</p>
+              {profile.openToWork && (
+                <div className="availability-chip mobile-chip">
+                  <Sparkles size={12} />
+                  <span>Available for work</span>
+                </div>
+              )}
+            </div>
+
+            <nav className="mobile-nav">
+              {NAV.map((item) => (
+                <MobileMenuItem
+                  key={item.to}
+                  {...item}
+                  onClose={() => setMobileMenuOpen(false)}
+                />
+              ))}
+            </nav>
+
+            {(profile.location || profile.email) && (
+              <div className="mobile-contact">
+                {profile.location && (
+                  <InfoRow icon={<MapPin size={13} />} text={profile.location} />
+                )}
+                {profile.email && (
+                  <InfoRow icon={<Mail size={13} />} text={profile.email} isLink />
+                )}
+              </div>
+            )}
+
+            {socials.length > 0 && (
+              <div className="mobile-socials">
+                {socials.map(([key, url]) => (
+                  <SocialIcon key={key} name={key} url={url} />
+                ))}
+              </div>
+            )}
+
+            <div className="mobile-footer-links">
+              <Link to="/terms" onClick={() => setMobileMenuOpen(false)}>Terms</Link>
+              <Link to="/privacy" onClick={() => setMobileMenuOpen(false)}>Privacy</Link>
+              <Link to="/admin/login" onClick={() => setMobileMenuOpen(false)}>Admin</Link>
             </div>
           </motion.div>
         )}
       </AnimatePresence>
 
-      {/* ─── MAIN ─── */}
-      <div className="layout-main">
-        <div className="layout-content">
+      {/* ═══════════════════════════════════════════
+          MAIN CONTENT AREA
+      ═══════════════════════════════════════════ */}
+      <main className="main-content">
+        <div className="content-wrapper">
           <Outlet />
         </div>
 
-        <footer style={{
-          borderTop: "1px solid var(--border)",
-          padding: "1rem 2rem",
-          display: "flex", justifyContent: "space-between",
-          alignItems: "center", flexWrap: "wrap", gap: "0.5rem",
-        }}>
-          <span style={{ fontFamily: "var(--font-display)", fontWeight: 500,
-            fontSize: "0.8rem", color: "var(--text-muted)" }}>
-            © {new Date().getFullYear()} {profile.name || settings.siteTitle || "Portfolio"}
-          </span>
-          <div style={{ display: "flex", gap: "1rem",
-            fontSize: "0.7rem", fontWeight: 500, color: "var(--text-light)" }}>
+        <footer className="page-footer">
+          <span>© {new Date().getFullYear()} {name}</span>
+          <div className="footer-links">
             <Link to="/terms">Terms</Link>
             <Link to="/privacy">Privacy</Link>
           </div>
         </footer>
-      </div>
-    </div>
-  );
-}
+      </main>
 
-function InfoRow({ icon, text }) {
-  return (
-    <div style={{ display: "flex", alignItems: "center", gap: 8,
-      color: "var(--text-secondary)", fontSize: "0.8rem" }}>
-      <span style={{ flexShrink: 0 }}>{icon}</span>
-      <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{text}</span>
+      <style>{`
+        /* ═══════════════════════════════════════════════════════
+           GLOBAL LAYOUT STYLES
+        ═════════════════════════════════════════════════════════ */
+        .public-layout {
+          display: flex;
+          min-height: 100vh;
+          width: 100%;
+        }
+
+        .mobile-header,
+        .mobile-drawer {
+          display: none;
+        }
+
+        /* ═══════════════════════════════════════════════════════
+           DESKTOP SIDEBAR (≥ 961px)
+        ═════════════════════════════════════════════════════════ */
+        .desktop-sidebar {
+          position: fixed;
+          top: 0;
+          left: 0;
+          bottom: 0;
+          width: var(--sidebar-w);
+          background: ${T.surface};
+          border-right: 1px solid ${T.border};
+          display: flex;
+          flex-direction: column;
+          overflow-y: auto;
+          z-index: 50;
+        }
+
+        .desktop-sidebar::-webkit-scrollbar {
+          width: 4px;
+        }
+        .desktop-sidebar::-webkit-scrollbar-track {
+          background: transparent;
+        }
+        .desktop-sidebar::-webkit-scrollbar-thumb {
+          background: ${T.border};
+          border-radius: 4px;
+        }
+
+        /* Profile Section with Image */
+        .sidebar-profile {
+          padding: 2rem 1.5rem;
+          text-align: center;
+          border-bottom: 1px solid ${T.border};
+        }
+
+        .avatar-container {
+          position: relative;
+          width: fit-content;
+          margin: 0 auto 1rem;
+        }
+
+        .avatar-ring {
+          position: absolute;
+          inset: -3px;
+          border-radius: 50%;
+          background: linear-gradient(135deg, ${T.accent}, #7c3aed);
+          opacity: 0;
+          transition: opacity 0.3s ease;
+        }
+
+        .avatar-container:hover .avatar-ring {
+          opacity: 1;
+        }
+
+        .avatar {
+          position: relative;
+          width: 100px;
+          height: 100px;
+          border-radius: 50%;
+          background: ${T.bgAlt};
+          border: 3px solid ${T.border};
+          overflow: hidden;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          transition: transform 0.3s ease;
+        }
+
+        .avatar:hover {
+          transform: scale(1.02);
+        }
+
+        .avatar img {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+        }
+
+        .status-badge {
+          position: absolute;
+          bottom: 4px;
+          right: 4px;
+          width: 14px;
+          height: 14px;
+          border-radius: 50%;
+          border: 2px solid ${T.surface};
+        }
+
+        .status-badge.available {
+          background: #10b981;
+          box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.2);
+          animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+          0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4); }
+          70% { box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); }
+          100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+        }
+
+        .sidebar-name {
+          font-family: var(--font-display);
+          font-size: 1.25rem;
+          font-weight: 700;
+          color: ${T.text};
+          margin: 0 0 0.25rem;
+        }
+
+        .sidebar-title {
+          font-size: 0.8rem;
+          color: ${T.textSec};
+          margin: 0 0 0.75rem;
+        }
+
+        .availability-chip {
+          display: inline-flex;
+          align-items: center;
+          gap: 0.5rem;
+          padding: 0.35rem 0.85rem;
+          background: rgba(16, 185, 129, 0.1);
+          border-radius: 40px;
+          font-size: 0.7rem;
+          font-weight: 600;
+          color: #10b981;
+        }
+
+        /* Contact Info */
+        .sidebar-contact {
+          padding: 1rem 1.5rem;
+          border-bottom: 1px solid ${T.border};
+          display: flex;
+          flex-direction: column;
+          gap: 0.6rem;
+        }
+
+        .info-row {
+          display: flex;
+          align-items: center;
+          gap: 0.65rem;
+          font-size: 0.75rem;
+          color: ${T.textSec};
+          text-decoration: none;
+          transition: all 0.2s;
+        }
+
+        .info-icon {
+          flex-shrink: 0;
+          color: ${T.textMuted};
+          transition: color 0.2s;
+        }
+
+        .info-text {
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+        }
+
+        .info-row a {
+          color: ${T.accent};
+          text-decoration: none;
+        }
+
+        /* Socials */
+        .sidebar-socials {
+          padding: 1rem 1.5rem;
+          border-bottom: 1px solid ${T.border};
+          display: flex;
+          flex-wrap: wrap;
+          gap: 0.5rem;
+        }
+
+        .social-icon {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          width: 36px;
+          height: 36px;
+          border-radius: 12px;
+          border: 1px solid ${T.border};
+          color: ${T.textMuted};
+          transition: all 0.2s;
+        }
+
+        .social-icon:hover {
+          border-color: ${T.accent};
+          background: ${T.bgAlt};
+          color: ${T.accent};
+        }
+
+        /* Navigation - WITH STRONG ACTIVE COLOR */
+        .sidebar-nav {
+          flex: 1;
+          padding: 1rem 1rem;
+          display: flex;
+          flex-direction: column;
+          gap: 0.25rem;
+        }
+
+        .nav-link {
+          display: flex;
+          align-items: center;
+          gap: 0.85rem;
+          padding: 0.7rem 1rem;
+          border-radius: 14px;
+          font-size: 0.85rem;
+          font-weight: 500;
+          color: ${T.textSec};
+          text-decoration: none;
+          transition: all 0.25s ease;
+          position: relative;
+        }
+
+        .nav-icon {
+          color: ${T.textMuted};
+          transition: all 0.25s ease;
+        }
+
+        .nav-link .nav-arrow {
+          margin-left: auto;
+          opacity: 0;
+          transition: all 0.25s ease;
+          color: ${T.accent};
+        }
+
+        /* Hover effect */
+        .nav-link:hover {
+          background: ${T.bgHover};
+          color: ${T.text};
+          transform: translateX(4px);
+        }
+
+        .nav-link:hover .nav-icon {
+          color: ${T.accent};
+        }
+
+        .nav-link:hover .nav-arrow {
+          opacity: 1;
+          transform: translateX(4px);
+        }
+
+        /* ACTIVE STATE - STRONG COLORED BACKGROUND */
+        .nav-link.active {
+          background: linear-gradient(135deg, rgba(var(--accent-rgb), 0.15), rgba(var(--accent-rgb), 0.08));
+          color: ${T.accent};
+          font-weight: 600;
+          border-left: 3px solid ${T.accent};
+          border-radius: 14px 8px 8px 14px;
+          box-shadow: 0 2px 8px rgba(var(--accent-rgb), 0.1);
+        }
+
+        .nav-link.active .nav-icon-active {
+          color: ${T.accent};
+        }
+
+        .nav-link.active .nav-arrow {
+          opacity: 1;
+          color: ${T.accent};
+        }
+
+        .nav-link.active .arrow-active {
+          color: ${T.accent};
+          opacity: 1;
+        }
+
+        .nav-link.active:hover {
+          transform: translateX(2px);
+          background: linear-gradient(135deg, rgba(var(--accent-rgb), 0.2), rgba(var(--accent-rgb), 0.1));
+        }
+
+        /* Active dot indicator */
+        .active-dot {
+          position: absolute;
+          right: 12px;
+          width: 6px;
+          height: 6px;
+          border-radius: 50%;
+          background: ${T.accent};
+          box-shadow: 0 0 6px ${T.accent};
+          animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+          from { opacity: 0; transform: scale(0); }
+          to { opacity: 1; transform: scale(1); }
+        }
+
+        /* Sidebar Footer */
+        .sidebar-footer {
+          padding: 1rem 1.5rem;
+          border-top: 1px solid ${T.border};
+          display: flex;
+          gap: 1.5rem;
+          font-size: 0.7rem;
+        }
+
+        .sidebar-footer a {
+          color: ${T.textLt};
+          text-decoration: none;
+          transition: all 0.2s;
+        }
+
+        .sidebar-footer a:hover {
+          color: ${T.accent};
+          transform: translateX(2px);
+        }
+
+        /* ═══════════════════════════════════════════════════════
+           MAIN CONTENT
+        ═══════════════════════════════════════════════════════ */
+        .main-content {
+          flex: 1;
+          margin-left: var(--sidebar-w);
+          min-height: 100vh;
+          display: flex;
+          flex-direction: column;
+          min-width: 0;
+        }
+
+        .content-wrapper {
+          flex: 1;
+          width: 100%;
+          max-width: var(--content-max);
+          padding: clamp(1.25rem, 2.5vw, 3rem) clamp(1rem, 3vw, 3rem) 1rem;
+        }
+
+        .page-footer {
+          padding: 1rem 2rem;
+          border-top: 1px solid ${T.border};
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          font-size: 0.7rem;
+          color: ${T.textMuted};
+        }
+
+        .footer-links {
+          display: flex;
+          gap: 1.5rem;
+        }
+
+        .footer-links a {
+          color: ${T.textMuted};
+          text-decoration: none;
+          transition: color 0.2s;
+        }
+
+        .footer-links a:hover {
+          color: ${T.accent};
+        }
+
+        /* ═══════════════════════════════════════════════════════
+           MOBILE STYLES (≤ 960px)
+        ═══════════════════════════════════════════════════════ */
+        @media (max-width: 960px) {
+          .public-layout {
+            display: block;
+            min-height: 100dvh;
+          }
+
+          .desktop-sidebar {
+            display: none;
+          }
+
+          .main-content {
+            margin-left: 0;
+          }
+
+          .mobile-header {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            display: flex;
+            width: 100%;
+            min-height: 64px;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.75rem 1rem;
+            background: rgba(var(--surface-rgb), 0.92);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid ${T.borderLt};
+          }
+
+          .mobile-logo {
+            display: flex;
+            align-items: center;
+            gap: 0.65rem;
+            text-decoration: none;
+            min-width: 0;
+          }
+
+          .mobile-logo-text {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            min-width: 0;
+          }
+
+          .mobile-name {
+            font-family: var(--font-display);
+            font-size: 1rem;
+            font-weight: 600;
+            color: ${T.text};
+            max-width: min(58vw, 420px);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+          }
+
+          .mobile-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #10b981;
+            animation: pulse 2s infinite;
+          }
+
+          .menu-button {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            min-width: 40px;
+            border-radius: 12px;
+            background: transparent;
+            border: none;
+            color: ${T.textSec};
+            cursor: pointer;
+            transition: all 0.2s;
+          }
+
+          .menu-button:hover {
+            background: ${T.bgAlt};
+          }
+
+          .mobile-drawer {
+            display: block;
+            position: fixed;
+            top: 64px;
+            left: 0;
+            right: 0;
+            z-index: 99;
+            background: ${T.surface};
+            border-top: 1px solid ${T.border};
+            bottom: 0;
+            overflow-y: auto;
+            overscroll-behavior: contain;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.08);
+          }
+
+          /* Mobile Profile Section */
+          .mobile-profile {
+            text-align: center;
+            padding: 1rem 1rem 1.5rem;
+            border-bottom: 1px solid ${T.borderLt};
+            margin-bottom: 0.5rem;
+          }
+
+          .mobile-avatar-large {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            margin: 0 auto 0.75rem;
+            overflow: hidden;
+            border: 2px solid ${T.border};
+          }
+
+          .mobile-avatar-large img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+          }
+
+          .mobile-profile-name {
+            font-family: var(--font-display);
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin: 0 0 0.25rem;
+            color: ${T.text};
+          }
+
+          .mobile-profile-title {
+            font-size: 0.75rem;
+            color: ${T.textSec};
+            margin: 0;
+          }
+
+          .mobile-chip {
+            margin-top: 0.5rem;
+            font-size: 0.65rem;
+          }
+
+          .mobile-nav {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+            padding: 0.5rem;
+          }
+
+          .mobile-nav-item {
+            display: flex;
+            align-items: center;
+            gap: 0.85rem;
+            min-height: 48px;
+            padding: 0.85rem 1rem;
+            border-radius: 14px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: ${T.textSec};
+            text-decoration: none;
+            transition: all 0.2s;
+            position: relative;
+            width: 100%;
+          }
+
+          .mobile-nav-icon {
+            color: ${T.textMuted};
+            transition: color 0.2s;
+          }
+
+          .mobile-nav-item:hover {
+            background: ${T.bgHover};
+            color: ${T.text};
+            transform: translateX(4px);
+          }
+
+          .mobile-nav-item:hover .mobile-nav-icon {
+            color: ${T.accent};
+          }
+
+          /* Mobile Active State - STRONG COLOR */
+          .mobile-nav-item.active {
+            background: linear-gradient(135deg, rgba(var(--accent-rgb), 0.15), rgba(var(--accent-rgb), 0.08));
+            color: ${T.accent};
+            font-weight: 600;
+            border-left: 3px solid ${T.accent};
+            border-radius: 14px 8px 8px 14px;
+          }
+
+          .mobile-nav-item.active .mobile-nav-icon {
+            color: ${T.accent};
+          }
+
+          .active-indicator {
+            position: absolute;
+            right: 12px;
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: ${T.accent};
+            box-shadow: 0 0 6px ${T.accent};
+          }
+
+          .mobile-contact {
+            margin-top: 0.5rem;
+            padding: 1rem;
+            border-top: 1px solid ${T.borderLt};
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+          }
+
+          .mobile-socials {
+            padding: 1rem;
+            border-top: 1px solid ${T.borderLt};
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            justify-content: center;
+          }
+
+          .mobile-footer-links {
+            padding: 1rem;
+            border-top: 1px solid ${T.borderLt};
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1.5rem;
+            font-size: 0.75rem;
+          }
+
+          .mobile-footer-links a {
+            color: ${T.textLt};
+            text-decoration: none;
+            transition: all 0.2s;
+          }
+
+          .mobile-footer-links a:hover {
+            color: ${T.accent};
+          }
+        }
+
+        /* Tablet adjustments */
+        @media (max-width: 768px) {
+          .content-wrapper {
+            padding: 1.25rem 1rem 0.75rem;
+          }
+
+          .page-footer {
+            padding: 0.875rem 1rem;
+          }
+        }
+
+        @media (max-width: 480px) {
+          .mobile-header {
+            padding: 0.625rem 0.75rem;
+          }
+
+          .mobile-name {
+            max-width: min(64vw, 260px);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+          }
+
+          .mobile-drawer {
+            top: 60px;
+          }
+
+          .content-wrapper {
+            padding: 1rem 0.875rem 0.5rem;
+          }
+
+          .page-footer {
+            align-items: flex-start;
+            flex-direction: column;
+            gap: 0.5rem;
+          }
+        }
+      `}</style>
     </div>
+    </>
   );
 }

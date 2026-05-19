@@ -5,11 +5,21 @@ import { Helmet } from "react-helmet-async";
 import { ExternalLink, Github } from "lucide-react";
 import api from "../lib/api";
 
+const uniqueCategories = (items = []) => {
+  const seen = new Set();
+  return ["All", ...items].filter((item) => {
+    const key = String(item || "").trim().toLowerCase();
+    if (!key || seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+};
+
 export default function Works() {
   const [active, setActive] = useState("All");
   const { data: projects=[] } = useQuery({ queryKey:["projects"], queryFn:()=>api.get("/api/projects").then(r=>r.data) });
   const { data: cfg={} }      = useQuery({ queryKey:["settings"], queryFn:()=>api.get("/api/settings").then(r=>r.data) });
-  const cats = ["All",...(cfg.portfolioCategories||[])];
+  const cats = uniqueCategories(cfg.portfolioCategories);
   const list = active==="All" ? projects : projects.filter(p=>p.category===active);
 
   return (
@@ -39,7 +49,7 @@ export default function Works() {
         {list.length===0 ? (
           <p style={{color:"var(--text-muted)"}}>No projects yet.</p>
         ) : (
-          <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(clamp(200px,85vw,1fr),1fr))",gap:"clamp(0.75rem,2vw,1.25rem)"}}>
+          <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit, minmax(min(100%, 260px), 1fr))",gap:"clamp(0.75rem,2vw,1.25rem)"}}>
             <AnimatePresence mode="popLayout">
               {list.map((p,i)=>(
                 <motion.article key={p._id} layout initial={{opacity:0,scale:0.97}} animate={{opacity:1,scale:1}} exit={{opacity:0,scale:0.97}} transition={{delay:i*0.03}}

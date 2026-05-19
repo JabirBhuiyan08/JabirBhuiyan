@@ -19,9 +19,9 @@ export default function PrivacyPage() {
   return (
     <>
       <SeoHead seo={seo} />
-      <div style={{ padding: "3rem", maxWidth: 760 }}>
+      <div style={{ padding: "clamp(1rem, 4vw, 3rem)", maxWidth: 760, width: "100%" }}>
         <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}>
-          <h1 style={{ fontSize: "2.2rem", fontWeight: 800, marginBottom: "0.75rem" }}>
+          <h1 style={{ fontSize: "clamp(1.75rem, 6vw, 2.2rem)", fontWeight: 800, marginBottom: "0.75rem", lineHeight: 1.15 }}>
             {page.title || "Privacy Policy"}
           </h1>
           {page.updatedAt && (
@@ -32,7 +32,7 @@ export default function PrivacyPage() {
             </p>
           )}
           <div
-            style={{ color: "var(--text2)", lineHeight: 1.85, fontSize: "0.95rem" }}
+            style={{ color: "var(--text2)", lineHeight: 1.85, fontSize: "clamp(0.9rem, 2vw, 0.95rem)", overflowWrap: "anywhere" }}
             dangerouslySetInnerHTML={{ __html: page.content || "<p>Content coming soon.</p>" }}
           />
         </motion.div>

@@ -249,9 +249,6 @@ export default function ContactPage() {
           </motion.div>
         </div>
 
-        {/* Decorative Elements */}
-        <div className="contact-decoration" />
-        <div className="contact-decoration-2" />
       </motion.div>
 
       <style>{`
@@ -260,6 +257,7 @@ export default function ContactPage() {
           margin: 0 auto;
           padding: 2rem 1.5rem 4rem;
           position: relative;
+          width: 100%;
         }
 
         .contact-header {
@@ -287,7 +285,7 @@ export default function ContactPage() {
           font-weight: 700;
           line-height: 1.1;
           margin: 0 0 1rem;
-          letter-spacing: -0.02em;
+          letter-spacing: 0;
         }
 
         .contact-title span {
@@ -350,6 +348,7 @@ export default function ContactPage() {
           display: flex;
           flex-direction: column;
           gap: 0.25rem;
+          min-width: 0;
         }
 
         .contact-card-label {
@@ -479,6 +478,7 @@ export default function ContactPage() {
 
         .form-input,
         .form-textarea {
+          width: 100%;
           padding: 0.85rem 1rem;
           background: var(--bg-alt);
           border: 2px solid var(--border);
@@ -608,31 +608,6 @@ export default function ContactPage() {
           color: var(--accent);
         }
 
-        /* Decoration */
-        .contact-decoration {
-          position: fixed;
-          top: 20%;
-          right: -5%;
-          width: 350px;
-          height: 350px;
-          background: radial-gradient(circle, rgba(var(--accent-rgb), 0.08) 0%, transparent 70%);
-          border-radius: 50%;
-          pointer-events: none;
-          z-index: -1;
-        }
-
-        .contact-decoration-2 {
-          position: fixed;
-          bottom: 10%;
-          left: -5%;
-          width: 250px;
-          height: 250px;
-          background: radial-gradient(circle, rgba(139, 92, 246, 0.06) 0%, transparent 70%);
-          border-radius: 50%;
-          pointer-events: none;
-          z-index: -1;
-        }
-
         /* Responsive */
         @media (max-width: 900px) {
           .contact-container {
@@ -653,7 +628,12 @@ export default function ContactPage() {
 
         @media (max-width: 640px) {
           .contact-page {
-            padding: 1rem 1rem 3rem;
+            padding: 1rem 0 3rem;
+          }
+
+          .contact-header {
+            text-align: left;
+            margin-bottom: 2rem;
           }
 
           .form-row {
@@ -675,6 +655,15 @@ export default function ContactPage() {
 
           .form-wrapper {
             padding: 1.25rem;
+            border-radius: 20px;
+          }
+
+          .form-header {
+            text-align: left;
+          }
+
+          .contact-title {
+            font-size: clamp(2rem, 13vw, 2.8rem);
           }
         }
       `}</style>
