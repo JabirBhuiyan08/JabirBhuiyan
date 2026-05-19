@@ -1,5 +1,41 @@
 @import "tailwindcss";
 
+/* ─── Tailwind v4 design tokens ─────────────────────────────────────────── */
+@theme {
+  /* Backgrounds */
+  --color-base:        var(--bg);
+  --color-bg-alt:      var(--bg-alt);
+  --color-bg-hover:    var(--bg-hover);
+  --color-surface:     var(--surface);
+
+  /* Borders */
+  --color-border-base:   var(--border);
+  --color-border-light:  var(--border-light);
+
+  /* Text */
+  --color-text:         var(--text);
+  --color-text-secondary: var(--text-secondary);
+  --color-text-muted:   var(--text-muted);
+  --color-text-light:   var(--text-light);
+
+  /* Accent */
+  --color-accent:       var(--accent);
+  --color-accent-light: var(--accent-light);
+
+  /* Status */
+  --color-success: var(--success);
+  --color-danger:  var(--error);
+
+  /* Typography */
+  --font-display: "Playfair Display", Georgia, serif;
+  --font-body:    "Source Sans 3", system-ui, sans-serif;
+
+  /* Spacing */
+  --spacing-sidebar-width: var(--sidebar-w);
+  --spacing-content-max:   var(--content-max);
+}
+
+/* ─── Root custom properties ──────────────────────────────────────────── */
 :root {
   /* Classic warm palette - clean and readable */
   --bg:        #fafafa;
@@ -8,33 +44,64 @@
   --surface:   #ffffff;
   --border:    #e5e5e5;
   --border-light: #f0f0f0;
-  
+
   /* Classic typography colors */
   --text:      #1a1a1a;
   --text-secondary: #555555;
   --text-muted: #888888;
   --text-light: #999999;
-  
+
   /* Accent - professional blue-gray */
   --accent:    #2d3748;
   --accent-light: #4a5568;
-  
+
   /* Status colors */
   --success:   #276749;
   --error:     #c53030;
-  
-  /* Layout */
-  --sidebar-w:    280px;
-  --content-max:  800px;
-  
+
+  /* Layout - base values (640 px sidebar + content breakpoint)
+     Large / extra-large override these right below */
+  --sidebar-w:   280px;
+  --content-max: 800px;
+
   /* Typography */
   --font-display: "Playfair Display", Georgia, serif;
   --font-body:    "Source Sans 3", system-ui, sans-serif;
-  
+
   --r: 4px;
   --r2: 8px;
 }
 
+/* ─── Large-screen overrides ____________________________________________
+   Everything in this block fires automatically when the viewport is at
+   least 1536 px ─ the common "laptop / desktop 1440-1680 px" range.
+   ─ 320 px sidebar: more room for the nav panel and logo.
+   ─ 1400 px content: the main column fills a comfortable ~1050 px
+     after the sidebar is subtracted (1536 − 320 − 64 × 2 gutters).
+   ─ 1280 / 1920 layer: 4-column project grid, bolder typography,
+     larger section gaps.                                   ──────────── */
+@media (min-width: 1280px) {
+  :root {
+    --sidebar-w:   320px;
+    --content-max: 1200px;
+  }
+}
+
+@media (min-width: 1536px) {
+  :root {
+    --sidebar-w:   360px;
+    --content-max: 1400px;
+  }
+}
+
+@media (min-width: 1920px) {
+  :root {
+    --sidebar-w:   360px;
+    --content-max: 1600px;
+  }
+}
+
+/* ─── Reset / base ────────────────────────────────────────────────────── */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 html { scroll-behavior: smooth; }
 
@@ -73,7 +140,7 @@ img { display: block; max-width: 100%; }
 ::-webkit-scrollbar-thumb:hover { background: var(--text-light); }
 ::selection { background: var(--accent); color: white; }
 
-/* Form inputs - clean and modern */
+/* ─── Form inputs ─────────────────────────────────────────────────────── */
 .field-input {
   width: 100%;
   background: var(--surface);
@@ -86,18 +153,19 @@ img { display: block; max-width: 100%; }
   outline: none;
   transition: border-color 0.2s, box-shadow 0.2s;
 }
-.field-input:focus { 
-  border-color: var(--accent); 
+.field-input:focus {
+  border-color: var(--accent);
   box-shadow: 0 0 0 3px rgba(45, 55, 72, 0.1);
 }
 .field-input::placeholder { color: var(--text-light); }
 
-/* Layout */
+/* ─── Layout structure ────────────────────────────────────────────────── */
 .layout-root {
   display: flex;
   min-height: 100dvh;
 }
 
+/* Fixed left sidebar – width driven by --sidebar-w which grows on large screens */
 .layout-sidebar {
   width: var(--sidebar-w);
   min-width: var(--sidebar-w);
@@ -112,6 +180,7 @@ img { display: block; max-width: 100%; }
   z-index: 40;
 }
 
+/* Main column – offset by --sidebar-w */
 .layout-main {
   margin-left: var(--sidebar-w);
   flex: 1;
@@ -121,14 +190,33 @@ img { display: block; max-width: 100%; }
   background: var(--bg);
 }
 
+/* Content area:
+   max-width driven by --content-max – bottoms out at 1400 px on 1536 px+
+   screens and grows to 1600 px on 1920 px+ displays.
+   Padding grows proportionally so content never touches the sticky footer. */
 .layout-content {
   flex: 1;
   width: 100%;
   max-width: var(--content-max);
+  /* ×̶3̶.̶5̶r̶e̶m̶  →  3 segment for onkelar, responsively expands
+     (large screens accumulate extra content) */
   padding: 3.5rem 3rem 5rem;
 }
 
-/* Typography classes */
+/* Slightly more generous gutters on large laptops / 4-K desktops */
+@media (min-width: 1536px) {
+  .layout-content {
+    padding: 4rem 3.5rem 6rem;
+  }
+}
+
+@media (min-width: 1920px) {
+  .layout-content {
+    padding: 5rem 5rem 7rem;
+  }
+}
+
+/* ─── Typography helpers ──────────────────────────────────────────────── */
 .serif-display {
   font-family: var(--font-display);
   font-weight: 500;
@@ -210,7 +298,7 @@ img { display: block; max-width: 100%; }
   background: var(--bg-alt);
 }
 
-/* Responsive */
+/* ─── Mobile breakpoint (≤ 960 px) ───────────────────────────────────── */
 @media (max-width: 960px) {
   .layout-sidebar {
     width: 100%;
@@ -222,8 +310,7 @@ img { display: block; max-width: 100%; }
     border-right: none;
     border-bottom: 1px solid var(--border);
     position: fixed;
-    top: 0;
-    left: 0;
+    top: 0; left: 0;
     z-index: 50;
   }
   .layout-main { margin-left: 0; margin-top: 60px; }

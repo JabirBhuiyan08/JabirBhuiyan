@@ -133,8 +133,8 @@ export default function ASEO() {
       <Header title="SEO" sub="Control meta titles, descriptions and social previews for every page." />
 
       {/* Static pages */}
-      <h2 style={{ fontSize: "1rem", fontWeight: 700, color: "var(--text2)", marginBottom: "0.75rem",
-        textTransform: "uppercase", letterSpacing: "0.07em", fontSize: "0.78rem" }}>
+      <h2 style={{ fontSize: "0.78rem", fontWeight: 700, color: "var(--text2)", marginBottom: "0.75rem",
+        textTransform: "uppercase", letterSpacing: "0.07em" }}>
         Static pages
       </h2>
       <div style={{ display: "flex", flexDirection: "column", gap: "0.6rem", marginBottom: "2rem" }}>
