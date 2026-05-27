@@ -58,7 +58,7 @@ export const s = {
     alignItems: "center",
     gap: "0.4rem",
     background: "var(--accent)",
-    color: "var(--bg)",
+    color: "var(--accent-fg)",
     border: "none",
     borderRadius: "var(--radius)",
     padding: "0.55rem 1rem",

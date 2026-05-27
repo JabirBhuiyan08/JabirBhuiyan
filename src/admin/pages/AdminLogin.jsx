@@ -216,7 +216,7 @@ export default function AdminLogin() {
           width: 100%;
           padding: 0.65rem;
           background: var(--accent);
-          color: var(--bg);
+          color: var(--accent-fg);
           border: none;
           border-radius: var(--radius);
           font-size: 0.85rem;

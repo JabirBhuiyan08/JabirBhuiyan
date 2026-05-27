@@ -29,6 +29,7 @@
   --accent:       #111111;
   --accent-hover: #333333;
   --accent-muted: rgba(17, 17, 17, 0.08);
+  --accent-fg:    #ffffff;
 
   --green:        #12b886;
   --green-bg:     rgba(18, 184, 134, 0.08);
@@ -70,6 +71,7 @@
   --accent:       #fafafa;
   --accent-hover: #e4e4e7;
   --accent-muted: rgba(250, 250, 250, 0.08);
+  --accent-fg:    #0a0a0a;
 
   --green:        #34d399;
   --green-bg:     rgba(52, 211, 153, 0.1);
@@ -156,7 +158,7 @@ input, textarea, select { max-width: 100%; font-family: var(--font-sans); }
 
 .btn-primary {
   background: var(--accent);
-  color: var(--bg);
+  color: var(--accent-fg);
 }
 .btn-primary:hover {
   opacity: 0.85;

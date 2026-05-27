@@ -134,7 +134,7 @@ export default function Works() {
 
         .filter-btn.active {
           background: var(--accent);
-          color: var(--bg);
+          color: var(--accent-fg);
           border-color: var(--accent);
         }
 
