@@ -5,6 +5,7 @@ import { useAuth } from "./lib/AuthContext";
 import PublicLayout  from "./components/layout/PublicLayout";
 import Home          from "./pages/Home";
 import Works         from "./pages/Works";
+import ProjectDetail from "./pages/ProjectDetail";
 import ServicesPage  from "./pages/ServicesPage";
 import BlogList      from "./pages/BlogList";
 import BlogPost      from "./pages/BlogPost";
@@ -44,6 +45,8 @@ export default function App() {
       <Route element={<PublicLayout />}>
         <Route path="/"            element={<Home />} />
         <Route path="/works"       element={<Works />} />
+        <Route path="/works/:id"   element={<ProjectDetail />} />
+        <Route path="/works/:id"   element={<ProjectDetail />} />
         <Route path="/services"    element={<ServicesPage />} />
         <Route path="/blog"        element={<BlogList />} />
         <Route path="/blog/:slug"  element={<BlogPost />} />

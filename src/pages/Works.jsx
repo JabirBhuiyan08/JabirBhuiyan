@@ -2,83 +2,264 @@ import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
 import { Helmet } from "react-helmet-async";
-import { ExternalLink, Github } from "lucide-react";
+import { ArrowUpRight, Github } from "lucide-react";
+import { Link } from "react-router-dom";
 import api from "../lib/api";
-
-const uniqueCategories = (items = []) => {
-  const seen = new Set();
-  return ["All", ...items].filter((item) => {
-    const key = String(item || "").trim().toLowerCase();
-    if (!key || seen.has(key)) return false;
-    seen.add(key);
-    return true;
-  });
-};
 
 export default function Works() {
   const [active, setActive] = useState("All");
-  const { data: projects=[] } = useQuery({ queryKey:["projects"], queryFn:()=>api.get("/api/projects").then(r=>r.data) });
-  const { data: cfg={} }      = useQuery({ queryKey:["settings"], queryFn:()=>api.get("/api/settings").then(r=>r.data) });
-  const cats = uniqueCategories(cfg.portfolioCategories);
-  const list = active==="All" ? projects : projects.filter(p=>p.category===active);
+  const { data: projects = [] } = useQuery({ queryKey: ["projects"], queryFn: () => api.get("/api/projects").then(r => r.data) });
+  const { data: cfg = {} } = useQuery({ queryKey: ["settings"], queryFn: () => api.get("/api/settings").then(r => r.data) });
+
+  const cats = ["All", ...[...new Set((cfg.portfolioCategories || []).map(c => c?.trim()).filter(Boolean))]];
+  const list = active === "All" ? projects : projects.filter(p => p.category === active);
 
   return (
     <>
       <Helmet><title>Works — Portfolio</title></Helmet>
-      <motion.div initial={{opacity:0,y:16}} animate={{opacity:1,y:0}} transition={{duration:0.4}}>
-        <div style={{marginBottom:"clamp(1.5rem,4vw,2.5rem)"}}>
-          <p className="label-caps" style={{marginBottom:"0.5rem"}}>Portfolio</p>
-          <h1 style={{fontFamily:"var(--font-display)",fontWeight:600,fontSize:"clamp(1.75rem,5vw,3rem)",lineHeight:1.1}}>Works</h1>
-        </div>
 
-        <div style={{display:"flex",gap:"0.4rem",flexWrap:"wrap",marginBottom:"clamp(1.25rem,3vw,2rem)"}}>
-          {cats.map(c=>(
-            <button key={c} onClick={()=>setActive(c)} style={{
-              padding:"clamp(0.35rem,1vw,0.45rem) clamp(0.6rem,1.5vw,1rem)",
-              border:active===c?"none":"1px solid var(--border)",
-              background:active===c?"var(--accent)":"var(--surface)",
-              color:active===c?"white":"var(--text-secondary)",
-              fontSize:"clamp(0.65rem,1.2vw,0.75rem)",fontWeight:600,textTransform:"uppercase",
-              borderRadius:"var(--r)",transition:"all 0.15s",cursor:"pointer"
-            }}>
-              {c}
-            </button>
-          ))}
-        </div>
+      <div className="works-page">
+        <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
+          <header className="page-header">
+            <h1>Works</h1>
+            <p className="text-2">Projects I've built and shipped.</p>
+          </header>
 
-        {list.length===0 ? (
-          <p style={{color:"var(--text-muted)"}}>No projects yet.</p>
-        ) : (
-          <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit, minmax(min(100%, 260px), 1fr))",gap:"clamp(0.75rem,2vw,1.25rem)"}}>
-            <AnimatePresence mode="popLayout">
-              {list.map((p,i)=>(
-                <motion.article key={p._id} layout initial={{opacity:0,scale:0.97}} animate={{opacity:1,scale:1}} exit={{opacity:0,scale:0.97}} transition={{delay:i*0.03}}
-                  style={{background:"var(--surface)",border:"1px solid var(--border)",borderRadius:"var(--r2)",overflow:"hidden",display:"flex",flexDirection:"column",transition:"all 0.2s"}}
-                  onMouseEnter={e=>{e.currentTarget.style.borderColor="var(--accent)";e.currentTarget.style.boxShadow="0 4px 12px rgba(0,0,0,0.08)"}} onMouseLeave={e=>{e.currentTarget.style.borderColor="var(--border)";e.currentTarget.style.boxShadow="none"}}>
-                  {p.imageUrl?
-                    <img src={p.imageUrl} alt={p.title} style={{width:"100%",height:"clamp(100px,20vw,140px)",objectFit:"cover"}}/>:
-                    <div style={{height:"clamp(100px,20vw,140px)",background:"var(--bg-alt)",display:"flex",alignItems:"center",justifyContent:"center",fontFamily:"var(--font-display)",fontSize:"clamp(1.5rem,4vw,2.5rem)",fontWeight:600,color:"var(--text-light)"}}>{p.title[0]}</div>
-                  }
-                  <div style={{padding:"clamp(0.75rem,2vw,1.25rem)",flex:1,display:"flex",flexDirection:"column"}}>
-                    <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",gap:"0.5rem",marginBottom:"0.4rem"}}>
-                      <h3 style={{fontFamily:"var(--font-display)",fontSize:"clamp(0.9rem,2vw,1.1rem)",fontWeight:600,lineHeight:1.2}}>{p.title}</h3>
-                    </div>
-                    <span className="chip" style={{alignSelf:"flex-start",marginBottom:"0.5rem",fontSize:"clamp(0.6rem,1vw,0.7rem)"}}>{p.category}</span>
-                    <p style={{color:"var(--text-secondary)",fontSize:"clamp(0.7rem,1.3vw,0.85rem)",lineHeight:1.5,marginBottom:"clamp(0.5rem,1.2vw,0.75rem)",flex:1}}>{p.description}</p>
-                    <div style={{display:"flex",gap:"0.4rem",flexWrap:"wrap",marginBottom:"0.5rem"}}>
-                      {p.tags?.slice(0,3).map(t=><span key={t} style={{fontSize:"clamp(0.55rem,1vw,0.65rem)",color:"var(--text-light)",background:"var(--bg-alt)",padding:"2px 5px",borderRadius:"2px"}}>{t}</span>)}
-                    </div>
-                    <div style={{display:"flex",gap:"0.5rem",marginTop:"auto"}}>
-                      {p.liveUrl&&<a href={p.liveUrl} target="_blank" rel="noreferrer" style={{display:"flex",alignItems:"center",gap:3,color:"var(--accent)",fontSize:"clamp(0.6rem,1vw,0.7rem)",fontWeight:600,textTransform:"uppercase"}}><ExternalLink size={10}/> Live</a>}
-                      {p.repoUrl&&<a href={p.repoUrl} target="_blank" rel="noreferrer" style={{display:"flex",alignItems:"center",gap:3,color:"var(--text-muted)",fontSize:"clamp(0.6rem,1vw,0.7rem)",fontWeight:600,textTransform:"uppercase"}}><Github size={10}/> Code</a>}
-                    </div>
-                  </div>
-                </motion.article>
-              ))}
-            </AnimatePresence>
+          {/* Filters */}
+          <div className="filter-bar">
+            {cats.map(c => (
+              <button
+                key={c}
+                onClick={() => setActive(c)}
+                className={`filter-btn ${active === c ? "active" : ""}`}
+              >
+                {c}
+              </button>
+            ))}
           </div>
-        )}
-      </motion.div>
+
+          {/* Grid */}
+          {list.length === 0 ? (
+            <p className="empty-state">No projects yet.</p>
+          ) : (
+            <div className="works-grid">
+              <AnimatePresence mode="popLayout">
+                {list.map((p, i) => (
+                  <motion.article
+                    key={p._id}
+                    layout
+                    initial={{ opacity: 0, scale: 0.98 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.98 }}
+                    transition={{ delay: i * 0.03 }}
+                    className="work-card"
+                  >
+                    <Link to={`/works/${p._id}`} className="work-card-link">
+                      <div className="work-media">
+                        {p.imageUrl ? (
+                          <img src={p.imageUrl} alt={p.title} loading="lazy" />
+                        ) : (
+                          <div className="work-placeholder mono">{p.title[0]}</div>
+                        )}
+                      </div>
+                      <div className="work-body">
+                        <div className="work-meta">
+                          <span className="tag">{p.category || "Project"}</span>
+                        </div>
+                        <h3>{p.title}</h3>
+                        <p className="work-desc">{p.description}</p>
+                        {p.tags?.length > 0 && (
+                          <div className="work-tags">
+                            {p.tags.slice(0, 4).map(t => (
+                              <span key={t} className="tag">{t}</span>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    </Link>
+                    <div className="work-links">
+                      {p.liveUrl && (
+                        <a href={p.liveUrl} target="_blank" rel="noreferrer" className="work-link" onClick={e => e.stopPropagation()}>
+                          <ArrowUpRight size={12} /> Live
+                        </a>
+                      )}
+                      {p.repoUrl && (
+                        <a href={p.repoUrl} target="_blank" rel="noreferrer" className="work-link" onClick={e => e.stopPropagation()}>
+                          <Github size={12} /> Code
+                        </a>
+                      )}
+                    </div>
+                  </motion.article>
+                ))}
+              </AnimatePresence>
+            </div>
+          )}
+        </motion.div>
+      </div>
+
+      <style>{`
+        .works-page .page-header {
+          margin-bottom: 1.5rem;
+        }
+
+        .works-page .page-header h1 {
+          margin-bottom: 0.25rem;
+        }
+
+        .filter-bar {
+          display: flex;
+          gap: 0.35rem;
+          flex-wrap: wrap;
+          margin-bottom: 1.5rem;
+          padding-bottom: 1rem;
+          border-bottom: 1px solid var(--border);
+        }
+
+        .filter-btn {
+          padding: 0.35rem 0.75rem;
+          font-size: 0.75rem;
+          font-weight: 500;
+          border: 1px solid var(--border);
+          background: transparent;
+          color: var(--text-3);
+          border-radius: var(--radius);
+          cursor: pointer;
+          transition: all 0.15s;
+        }
+
+        .filter-btn:hover {
+          color: var(--text);
+          border-color: var(--text-4);
+        }
+
+        .filter-btn.active {
+          background: var(--accent);
+          color: var(--bg);
+          border-color: var(--accent);
+        }
+
+        .empty-state {
+          color: var(--text-3);
+          font-size: 0.9rem;
+          padding: 2rem 0;
+        }
+
+        .works-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+          gap: 1rem;
+        }
+
+        .work-card {
+          border: 1px solid var(--border);
+          border-radius: var(--radius-lg);
+          overflow: hidden;
+          background: var(--surface);
+          transition: border-color 0.2s, box-shadow 0.2s;
+          display: flex;
+          flex-direction: column;
+        }
+
+        .work-card:hover {
+          border-color: var(--text-4);
+          box-shadow: var(--shadow-md);
+        }
+
+        .work-card-link {
+          display: block;
+          text-decoration: none;
+          color: inherit;
+          flex: 1;
+        }
+
+        .work-media {
+          aspect-ratio: 16/9;
+          background: var(--bg-alt);
+          overflow: hidden;
+        }
+
+        .work-media img {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+          transition: transform 0.3s;
+        }
+
+        .work-card:hover .work-media img {
+          transform: scale(1.02);
+        }
+
+        .work-placeholder {
+          width: 100%;
+          height: 100%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 2.5rem;
+          color: var(--text-4);
+          font-weight: 600;
+        }
+
+        .work-body {
+          padding: 1rem 1.25rem 1.25rem;
+        }
+
+        .work-meta {
+          margin-bottom: 0.5rem;
+        }
+
+        .work-body h3 {
+          font-size: 1rem;
+          font-weight: 600;
+          margin-bottom: 0.35rem;
+        }
+
+        .work-desc {
+          font-size: 0.8rem;
+          color: var(--text-2);
+          line-height: 1.5;
+          display: -webkit-box;
+          -webkit-line-clamp: 2;
+          -webkit-box-orient: vertical;
+          overflow: hidden;
+        }
+
+        .work-tags {
+          display: flex;
+          gap: 0.35rem;
+          flex-wrap: wrap;
+          margin-top: 0.75rem;
+        }
+
+        .work-links {
+          display: flex;
+          gap: 0.75rem;
+          padding: 0.75rem 1.25rem;
+          border-top: 1px solid var(--border);
+        }
+
+        .work-link {
+          display: flex;
+          align-items: center;
+          gap: 0.3rem;
+          font-size: 0.72rem;
+          font-weight: 500;
+          color: var(--text-3);
+          text-transform: uppercase;
+          letter-spacing: 0.03em;
+          transition: color 0.15s;
+        }
+
+        .work-link:hover {
+          color: var(--text);
+        }
+
+        @media (max-width: 640px) {
+          .works-grid {
+            grid-template-columns: 1fr;
+          }
+        }
+      `}</style>
     </>
   );
 }

@@ -6,68 +6,173 @@ import { Link } from "react-router-dom";
 import { ArrowRight } from "lucide-react";
 import api from "../lib/api";
 
-const uniqueCategories = (items = []) => {
-  const seen = new Set();
-  return ["All", ...items].filter((item) => {
-    const key = String(item || "").trim().toLowerCase();
-    if (!key || seen.has(key)) return false;
-    seen.add(key);
-    return true;
-  });
-};
-
 export default function BlogList() {
   const [active, setActive] = useState("All");
-  const { data: blogs=[] } = useQuery({ queryKey:["blogs"],    queryFn:()=>api.get("/api/blogs").then(r=>r.data) });
-  const { data: cfg={} }   = useQuery({ queryKey:["settings"], queryFn:()=>api.get("/api/settings").then(r=>r.data) });
-  const cats = uniqueCategories(cfg.blogCategories);
-  const list = active==="All" ? blogs : blogs.filter(b=>b.category===active);
+  const { data: blogs = [] } = useQuery({ queryKey: ["blogs"], queryFn: () => api.get("/api/blogs").then(r => r.data) });
+  const { data: cfg = {} } = useQuery({ queryKey: ["settings"], queryFn: () => api.get("/api/settings").then(r => r.data) });
+
+  const cats = ["All", ...[...new Set((cfg.blogCategories || []).map(c => c?.trim()).filter(Boolean))]];
+  const list = active === "All" ? blogs : blogs.filter(b => b.category === active);
 
   return (
     <>
       <Helmet><title>Blog — Portfolio</title></Helmet>
-      <motion.div initial={{opacity:0,y:16}} animate={{opacity:1,y:0}} transition={{duration:0.4}}>
-        <div style={{marginBottom:"clamp(1.5rem,4vw,2.5rem)"}}>
-          <p className="label-caps" style={{marginBottom:"0.5rem"}}>Writing</p>
-          <h1 style={{fontFamily:"var(--font-display)",fontWeight:600,fontSize:"clamp(1.75rem,5vw,3rem)",lineHeight:1.1}}>Journal</h1>
-        </div>
 
-        <div style={{display:"flex",gap:"0.4rem",flexWrap:"wrap",marginBottom:"clamp(1.25rem,3vw,2rem)"}}>
-          {cats.map(c=>(
-            <button key={c} onClick={()=>setActive(c)} style={{
-              padding:"clamp(0.35rem,1vw,0.45rem) clamp(0.6rem,1.5vw,1rem)",
-              border:active===c?"none":"1px solid var(--border)",
-              background:active===c?"var(--accent)":"var(--surface)",
-              color:active===c?"white":"var(--text-secondary)",
-              fontSize:"clamp(0.65rem,1.2vw,0.75rem)",fontWeight:600,textTransform:"uppercase",
-              borderRadius:"var(--r)",transition:"all 0.15s",cursor:"pointer"
-            }}>{c}</button>
-          ))}
-        </div>
+      <div className="blog-page">
+        <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
+          <header className="page-header">
+            <h1>Blog</h1>
+            <p className="text-2">Thoughts on code, design, and building things.</p>
+          </header>
 
-        {list.length===0 ? <p style={{color:"var(--text-muted)"}}>No posts yet.</p> : (
-          <div style={{display:"flex",flexDirection:"column",gap:"clamp(0.75rem,2vw,1rem)"}}>
-            {list.map((b,i)=>(
-              <motion.div key={b._id} initial={{opacity:0,y:10}} animate={{opacity:1,y:0}} transition={{delay:i*0.05}}>
-                <Link to={`/blog/${b.slug}`}>
-                  <article style={{padding:"clamp(1rem,2.5vw,1.5rem)",background:"var(--surface)",border:"1px solid var(--border)",borderRadius:"var(--r2)",transition:"all 0.2s"}}
-                    onMouseEnter={e=>{e.currentTarget.style.borderColor="var(--accent)";e.currentTarget.style.boxShadow="0 2px 8px rgba(0,0,0,0.06)"}} onMouseLeave={e=>{e.currentTarget.style.borderColor="var(--border)";e.currentTarget.style.boxShadow="none"}}>
-                    <div style={{display:"flex",alignItems:"center",gap:"0.5rem",marginBottom:"0.5rem",flexWrap:"wrap"}}>
-                      <span style={{fontSize:"clamp(0.6rem,1.1vw,0.7rem)",color:"var(--text-muted)"}}>{new Date(b.createdAt).toLocaleDateString("en-US",{year:"numeric",month:"short",day:"numeric"})}</span>
-                      {b.category && <span className="chip" style={{fontSize:"clamp(0.55rem,1vw,0.65rem)"}}>{b.category}</span>}
-                    </div>
-                    <h2 style={{fontFamily:"var(--font-display)",fontSize:"clamp(1rem,2.5vw,1.4rem)",fontWeight:600,lineHeight:1.25,marginBottom:"0.35rem",color:"var(--text)"}}>{b.title}</h2>
-                    <p style={{color:"var(--text-secondary)",fontSize:"clamp(0.75rem,1.4vw,0.88rem)",lineHeight:1.5,marginBottom:"0.5rem"}}>{b.excerpt}</p>
-                    <span style={{display:"inline-flex",alignItems:"center",gap:3,fontSize:"clamp(0.6rem,1.1vw,0.7rem)",fontWeight:600,textTransform:"uppercase",color:"var(--accent)"}}>
-                      Read More <ArrowRight size={10}/>
-                    </span>
-                  </article>
-                </Link>
-              </motion.div>
+          <div className="filter-bar">
+            {cats.map(c => (
+              <button
+                key={c}
+                onClick={() => setActive(c)}
+                className={`filter-btn ${active === c ? "active" : ""}`}
+              >
+                {c}
+              </button>
             ))}
           </div>
-        )}
-      </motion.div>
+
+          {list.length === 0 ? (
+            <p className="empty-state">No posts yet.</p>
+          ) : (
+            <div className="blog-list">
+              {list.map((b, i) => (
+                <motion.div
+                  key={b._id}
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: i * 0.04 }}
+                >
+                  <Link to={`/blog/${b.slug}`} className="blog-item">
+                    <div className="blog-item-meta">
+                      <time className="mono">{new Date(b.createdAt).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" })}</time>
+                      {b.category && <span className="tag">{b.category}</span>}
+                    </div>
+                    <h3>{b.title}</h3>
+                    {b.excerpt && <p>{b.excerpt}</p>}
+                    <span className="blog-read-more">
+                      Read more <ArrowRight size={12} />
+                    </span>
+                  </Link>
+                </motion.div>
+              ))}
+            </div>
+          )}
+        </motion.div>
+      </div>
+
+      <style>{`
+        .blog-page .page-header {
+          margin-bottom: 1.5rem;
+        }
+
+        .blog-page .page-header h1 {
+          margin-bottom: 0.25rem;
+        }
+
+        .blog-page .filter-bar {
+          display: flex;
+          gap: 0.35rem;
+          flex-wrap: wrap;
+          margin-bottom: 1.5rem;
+          padding-bottom: 1rem;
+          border-bottom: 1px solid var(--border);
+        }
+
+        .blog-page .filter-btn {
+          padding: 0.35rem 0.75rem;
+          font-size: 0.75rem;
+          font-weight: 500;
+          border: 1px solid var(--border);
+          background: transparent;
+          color: var(--text-3);
+          border-radius: var(--radius);
+          cursor: pointer;
+          transition: all 0.15s;
+        }
+
+        .blog-page .filter-btn:hover {
+          color: var(--text);
+          border-color: var(--text-4);
+        }
+
+        .blog-page .filter-btn.active {
+          background: var(--accent);
+          color: var(--bg);
+          border-color: var(--accent);
+        }
+
+        .empty-state {
+          color: var(--text-3);
+          font-size: 0.9rem;
+          padding: 2rem 0;
+        }
+
+        .blog-list {
+          display: flex;
+          flex-direction: column;
+          gap: 0;
+        }
+
+        .blog-item {
+          display: block;
+          padding: 1.25rem 0;
+          border-bottom: 1px solid var(--border);
+          text-decoration: none;
+          transition: background 0.15s;
+        }
+
+        .blog-item:first-child {
+          padding-top: 0;
+        }
+
+        .blog-item:hover {
+          opacity: 0.8;
+        }
+
+        .blog-item-meta {
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+          margin-bottom: 0.4rem;
+        }
+
+        .blog-item-meta time {
+          font-size: 0.72rem;
+          color: var(--text-3);
+        }
+
+        .blog-item h3 {
+          font-size: 1.05rem;
+          font-weight: 600;
+          color: var(--text);
+          margin-bottom: 0.3rem;
+          line-height: 1.3;
+        }
+
+        .blog-item p {
+          font-size: 0.8rem;
+          color: var(--text-2);
+          line-height: 1.5;
+          margin-bottom: 0.5rem;
+        }
+
+        .blog-read-more {
+          display: inline-flex;
+          align-items: center;
+          gap: 0.3rem;
+          font-size: 0.72rem;
+          font-weight: 500;
+          color: var(--text-3);
+          text-transform: uppercase;
+          letter-spacing: 0.03em;
+        }
+      `}</style>
     </>
   );
 }

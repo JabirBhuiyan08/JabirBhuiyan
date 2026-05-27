@@ -7,11 +7,11 @@ import { useAuth } from "../../lib/AuthContext";
 export default function AdminLogin() {
   const { login, isAdmin, loading } = useAuth();
   const navigate = useNavigate();
-  const [email,    setEmail]    = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [show,     setShow]     = useState(false);
-  const [error,    setError]    = useState("");
-  const [busy,     setBusy]     = useState(false);
+  const [show, setShow] = useState(false);
+  const [error, setError] = useState("");
+  const [busy, setBusy] = useState(false);
 
   useEffect(() => {
     if (!loading && isAdmin) navigate("/admin", { replace: true });
@@ -32,72 +32,210 @@ export default function AdminLogin() {
   };
 
   if (loading) return (
-    <div style={{ minHeight: "100vh", background: "var(--bg)", display: "flex",
-      alignItems: "center", justifyContent: "center", color: "var(--text3)" }}>Loading…</div>
+    <div style={{ minHeight: "100vh", background: "var(--bg)", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--text-3)" }}>
+      Loading…
+    </div>
   );
 
   return (
-    <div style={{ minHeight: "100vh", background: "var(--bg)",
-      display: "flex", alignItems: "center", justifyContent: "center", padding: "1rem" }}>
-      <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }}
-        style={{ background: "var(--surface)", border: "1px solid var(--border2)",
-          borderRadius: 20, padding: "2.5rem", width: "100%", maxWidth: 400 }}>
-
-        <div style={{ width: 52, height: 52, borderRadius: 14,
-          background: "rgba(124,109,250,0.12)", border: "1px solid rgba(124,109,250,0.25)",
-          display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 1.5rem" }}>
-          <Lock size={22} style={{ color: "var(--accent2)" }} />
+    <div className="login-page">
+      <motion.div
+        className="login-card"
+        initial={{ opacity: 0, y: 16 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3 }}
+      >
+        <div className="login-icon">
+          <Lock size={20} />
         </div>
 
-        <h1 style={{ fontSize: "1.5rem", fontWeight: 800, textAlign: "center", marginBottom: "0.4rem" }}>Admin Login</h1>
-        <p style={{ color: "var(--text2)", fontSize: "0.87rem", textAlign: "center", marginBottom: "2rem" }}>
-          Enter your credentials to continue.
-        </p>
+        <h1>Admin Login</h1>
+        <p>Enter your credentials to continue.</p>
 
-        {error && (
-          <div style={{ background: "rgba(248,113,113,0.08)", border: "1px solid rgba(248,113,113,0.25)",
-            borderRadius: 10, padding: "0.75rem 1rem", color: "var(--red)",
-            fontSize: "0.85rem", marginBottom: "1.25rem", textAlign: "center" }}>
-            {error}
-          </div>
-        )}
+        {error && <div className="login-error">{error}</div>}
 
-        <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
-          <div>
-            <label style={lbl}>Email</label>
-            <div style={{ position: "relative" }}>
-              <Mail size={14} style={icon} />
-              <input type="email" value={email} onChange={e => setEmail(e.target.value)}
-                placeholder="admin@example.com" required style={{ ...inp, paddingLeft: "2.4rem" }} />
+        <form onSubmit={handleSubmit} className="login-form">
+          <div className="login-field">
+            <label className="mono">Email</label>
+            <div className="input-wrapper">
+              <Mail size={14} className="input-icon" />
+              <input
+                type="email"
+                value={email}
+                onChange={e => setEmail(e.target.value)}
+                placeholder="admin@example.com"
+                required
+              />
             </div>
           </div>
-          <div>
-            <label style={lbl}>Password</label>
-            <div style={{ position: "relative" }}>
-              <Lock size={14} style={icon} />
-              <input type={show ? "text" : "password"} value={password}
+
+          <div className="login-field">
+            <label className="mono">Password</label>
+            <div className="input-wrapper">
+              <Lock size={14} className="input-icon" />
+              <input
+                type={show ? "text" : "password"}
+                value={password}
                 onChange={e => setPassword(e.target.value)}
-                placeholder="••••••••" required style={{ ...inp, paddingLeft: "2.4rem", paddingRight: "2.6rem" }} />
-              <button type="button" onClick={() => setShow(s => !s)}
-                style={{ position: "absolute", right: "0.8rem", top: "50%", transform: "translateY(-50%)",
-                  background: "none", border: "none", color: "var(--text3)", cursor: "pointer", padding: 0 }}>
+                placeholder="••••••••"
+                required
+              />
+              <button type="button" onClick={() => setShow(s => !s)} className="toggle-pw">
                 {show ? <EyeOff size={14} /> : <Eye size={14} />}
               </button>
             </div>
           </div>
-          <button type="submit" disabled={busy}
-            style={{ width: "100%", background: busy ? "var(--surface2)" : "var(--accent)",
-              color: "#fff", border: "none", borderRadius: 10, padding: "0.85rem",
-              fontSize: "0.92rem", fontWeight: 700, cursor: busy ? "not-allowed" : "pointer",
-              fontFamily: "var(--font-body)", opacity: busy ? 0.7 : 1, marginTop: "0.25rem" }}>
+
+          <button type="submit" disabled={busy} className="login-submit">
             {busy ? "Signing in…" : "Sign in"}
           </button>
         </form>
       </motion.div>
+
+      <style>{`
+        .login-page {
+          min-height: 100vh;
+          background: var(--bg);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          padding: 1rem;
+        }
+
+        .login-card {
+          width: 100%;
+          max-width: 380px;
+          background: var(--surface);
+          border: 1px solid var(--border);
+          border-radius: var(--radius-lg);
+          padding: 2rem;
+        }
+
+        .login-icon {
+          width: 44px;
+          height: 44px;
+          border-radius: var(--radius-lg);
+          background: var(--accent-muted);
+          border: 1px solid var(--border);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          color: var(--text-2);
+          margin: 0 auto 1.25rem;
+        }
+
+        .login-card h1 {
+          font-size: 1.25rem;
+          font-weight: 700;
+          text-align: center;
+          margin-bottom: 0.25rem;
+        }
+
+        .login-card > p {
+          color: var(--text-3);
+          font-size: 0.8rem;
+          text-align: center;
+          margin-bottom: 1.5rem;
+        }
+
+        .login-error {
+          background: var(--red-bg);
+          border: 1px solid var(--red);
+          border-radius: var(--radius);
+          padding: 0.6rem 0.85rem;
+          color: var(--red);
+          font-size: 0.8rem;
+          margin-bottom: 1rem;
+          text-align: center;
+        }
+
+        .login-form {
+          display: flex;
+          flex-direction: column;
+          gap: 0.85rem;
+        }
+
+        .login-field label {
+          display: block;
+          font-size: 0.7rem;
+          font-weight: 500;
+          color: var(--text-3);
+          text-transform: uppercase;
+          letter-spacing: 0.04em;
+          margin-bottom: 0.3rem;
+        }
+
+        .input-wrapper {
+          position: relative;
+        }
+
+        .input-icon {
+          position: absolute;
+          left: 0.75rem;
+          top: 50%;
+          transform: translateY(-50%);
+          color: var(--text-4);
+          pointer-events: none;
+        }
+
+        .input-wrapper input {
+          width: 100%;
+          padding: 0.6rem 0.85rem 0.6rem 2.25rem;
+          background: var(--bg-alt);
+          border: 1px solid var(--border);
+          border-radius: var(--radius);
+          color: var(--text);
+          font-size: 0.85rem;
+          outline: none;
+          transition: border-color 0.15s;
+          font-family: var(--font-sans);
+        }
+
+        .input-wrapper input:focus {
+          border-color: var(--text-3);
+        }
+
+        .toggle-pw {
+          position: absolute;
+          right: 0.75rem;
+          top: 50%;
+          transform: translateY(-50%);
+          background: none;
+          border: none;
+          color: var(--text-4);
+          cursor: pointer;
+          padding: 0;
+          display: flex;
+        }
+
+        .toggle-pw:hover {
+          color: var(--text-2);
+        }
+
+        .login-submit {
+          width: 100%;
+          padding: 0.65rem;
+          background: var(--accent);
+          color: var(--bg);
+          border: none;
+          border-radius: var(--radius);
+          font-size: 0.85rem;
+          font-weight: 500;
+          cursor: pointer;
+          margin-top: 0.25rem;
+          transition: opacity 0.15s;
+          font-family: var(--font-sans);
+        }
+
+        .login-submit:hover:not(:disabled) {
+          opacity: 0.85;
+        }
+
+        .login-submit:disabled {
+          opacity: 0.5;
+          cursor: not-allowed;
+        }
+      `}</style>
     </div>
   );
 }
-
-const lbl = { display: "block", fontSize: "0.75rem", fontWeight: 700, color: "var(--text3)", textTransform: "uppercase", letterSpacing: "0.07em", marginBottom: "0.4rem" };
-const inp = { width: "100%", background: "var(--bg2)", border: "1px solid var(--border2)", borderRadius: 9, padding: "0.7rem 0.9rem", color: "var(--text)", fontSize: "0.9rem", fontFamily: "var(--font-body)", outline: "none" };
-const icon = { position: "absolute", left: "0.85rem", top: "50%", transform: "translateY(-50%)", color: "var(--text3)", pointerEvents: "none" };

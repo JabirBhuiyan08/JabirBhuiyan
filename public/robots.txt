@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://jabir-bhuiyan-server-eight.vercel.app/api/sitemap

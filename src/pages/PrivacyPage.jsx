@@ -2,8 +2,8 @@ import { useQuery } from "@tanstack/react-query";
 import { motion } from "framer-motion";
 import { Calendar } from "lucide-react";
 import SeoHead from "../components/SeoHead";
-import useSeo  from "../hooks/useSeo";
-import api     from "../lib/api";
+import useSeo from "../hooks/useSeo";
+import api from "../lib/api";
 
 export default function PrivacyPage() {
   const { data: page = {} } = useQuery({
@@ -19,24 +19,66 @@ export default function PrivacyPage() {
   return (
     <>
       <SeoHead seo={seo} />
-      <div style={{ padding: "clamp(1rem, 4vw, 3rem)", maxWidth: 760, width: "100%" }}>
-        <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}>
-          <h1 style={{ fontSize: "clamp(1.75rem, 6vw, 2.2rem)", fontWeight: 800, marginBottom: "0.75rem", lineHeight: 1.15 }}>
-            {page.title || "Privacy Policy"}
-          </h1>
+      <div className="legal-page">
+        <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
+          <h1>{page.title || "Privacy Policy"}</h1>
           {page.updatedAt && (
-            <p style={{ display: "flex", alignItems: "center", gap: 6,
-              color: "var(--text3)", fontSize: "0.82rem", marginBottom: "2rem" }}>
+            <p className="legal-date mono">
               <Calendar size={13} />
               Last updated {new Date(page.updatedAt).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })}
             </p>
           )}
-          <div
-            style={{ color: "var(--text2)", lineHeight: 1.85, fontSize: "clamp(0.9rem, 2vw, 0.95rem)", overflowWrap: "anywhere" }}
-            dangerouslySetInnerHTML={{ __html: page.content || "<p>Content coming soon.</p>" }}
-          />
+          <div className="legal-content" dangerouslySetInnerHTML={{ __html: page.content || "<p>Content coming soon.</p>" }} />
         </motion.div>
       </div>
+
+      <style>{`
+        .legal-page {
+          max-width: 680px;
+        }
+
+        .legal-page h1 {
+          font-size: 1.75rem;
+          font-weight: 700;
+          margin-bottom: 0.5rem;
+        }
+
+        .legal-date {
+          display: flex;
+          align-items: center;
+          gap: 0.4rem;
+          font-size: 0.75rem;
+          color: var(--text-3);
+          margin-bottom: 2rem;
+          padding-bottom: 1rem;
+          border-bottom: 1px solid var(--border);
+        }
+
+        .legal-content {
+          color: var(--text-2);
+          font-size: 0.9rem;
+          line-height: 1.8;
+        }
+
+        .legal-content h2 {
+          margin-top: 2rem;
+          margin-bottom: 0.5rem;
+          font-size: 1.15rem;
+        }
+
+        .legal-content p {
+          margin-bottom: 1rem;
+        }
+
+        .legal-content ul, .legal-content ol {
+          margin-bottom: 1rem;
+          padding-left: 1.5rem;
+        }
+
+        .legal-content li {
+          margin-bottom: 0.35rem;
+        }
+      `}</style>
     </>
   );
 }
