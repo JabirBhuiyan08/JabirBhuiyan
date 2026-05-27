@@ -33,7 +33,7 @@ function Guard({ children }) {
   const { isAdmin, loading } = useAuth();
   if (loading) return (
     <div style={{ display:"flex", alignItems:"center", justifyContent:"center",
-      height:"100vh", background:"var(--bg)", color:"var(--text3)" }}>Loading…</div>
+      height:"100vh", background:"var(--bg)", color:"var(--text-3)" }}>Loading…</div>
   );
   return isAdmin ? children : <Navigate to="/admin/login" replace />;
 }
@@ -45,7 +45,6 @@ export default function App() {
       <Route element={<PublicLayout />}>
         <Route path="/"            element={<Home />} />
         <Route path="/works"       element={<Works />} />
-        <Route path="/works/:id"   element={<ProjectDetail />} />
         <Route path="/works/:id"   element={<ProjectDetail />} />
         <Route path="/services"    element={<ServicesPage />} />
         <Route path="/blog"        element={<BlogList />} />

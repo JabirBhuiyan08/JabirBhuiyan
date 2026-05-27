@@ -166,6 +166,7 @@ export default function PublicLayout() {
               })}
               <Link to="/terms" className="footer-link">Terms</Link>
               <Link to="/privacy" className="footer-link">Privacy</Link>
+              <Link to="/admin/login" className="footer-link">Admin</Link>
             </div>
           </div>
         </footer>
