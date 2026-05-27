@@ -108,11 +108,11 @@ function SeoForm({ pageKey, label }) {
                 <button onClick={() => saveMut.mutate()} disabled={saveMut.isPending}
                   style={{ display: "inline-flex", alignItems: "center", gap: 6,
                     background: saved ? "rgba(52,211,153,0.12)" : "var(--accent)",
-                    color: saved ? "var(--green)" : "#fff",
+                    color: saved ? "var(--green)" : "var(--accent-fg)",
                     border: saved ? "1px solid rgba(52,211,153,0.3)" : "none",
                     borderRadius: 9, padding: "0.55rem 1.1rem",
                     fontSize: "0.85rem", fontWeight: 700,
-                    cursor: "pointer", fontFamily: "var(--font-body)" }}>
+                    cursor: "pointer", fontFamily: "var(--font-sans)" }}>
                   <Save size={13} /> {saved ? "Saved!" : saveMut.isPending ? "Saving…" : "Save"}
                 </button>
               </div>

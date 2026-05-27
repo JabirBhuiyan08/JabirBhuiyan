@@ -150,19 +150,19 @@ export function SaveBtn({ saved, pending, onClick, large }) {
     <button onClick={onClick} disabled={pending}
       style={{ display: "inline-flex", alignItems: "center", gap: 6,
         background: saved ? "rgba(52,211,153,0.12)" : "var(--accent)",
-        color: saved ? "var(--green)" : "#fff",
+        color: saved ? "var(--green)" : "var(--accent-fg)",
         border: saved ? "1px solid rgba(52,211,153,0.3)" : "none",
         borderRadius: 9, padding: large ? "0.72rem 1.75rem" : "0.58rem 1.2rem",
         fontSize: large ? "0.95rem" : "0.87rem", fontWeight: 700,
         cursor: pending ? "not-allowed" : "pointer",
-        fontFamily: "var(--font-body)", transition: "all 0.2s", minWidth: 110,
+        fontFamily: "var(--font-sans)", transition: "all 0.2s", minWidth: 110,
       }}>
       {saved ? <><CheckCircle size={14} /> Saved!</> : pending ? "Saving…" : <><Save size={14} /> Save</>}
     </button>
   );
 }
 
-export const priBtn = { display: "inline-flex", alignItems: "center", gap: 6, background: "var(--accent)", color: "#fff", border: "none", borderRadius: 8, padding: "0.52rem 1rem", fontSize: "0.84rem", fontWeight: 600, cursor: "pointer", fontFamily: "var(--font-body)" };
-export const secBtn = { display: "inline-flex", alignItems: "center", gap: 6, background: "transparent", color: "var(--text2)", border: "1px solid var(--border2)", borderRadius: 8, padding: "0.48rem 0.9rem", fontSize: "0.82rem", fontWeight: 500, cursor: "pointer", fontFamily: "var(--font-body)" };
-export const danBtn = { display: "inline-flex", alignItems: "center", gap: 5, background: "transparent", color: "var(--red)", border: "1px solid rgba(248,113,113,0.25)", borderRadius: 7, padding: "0.34rem 0.75rem", fontSize: "0.78rem", cursor: "pointer", fontFamily: "var(--font-body)" };
-export const icoBtn = { display: "inline-flex", alignItems: "center", justifyContent: "center", width: 30, height: 30, background: "var(--surface2)", border: "1px solid var(--border)", borderRadius: 7, color: "var(--text2)", cursor: "pointer" };
+export const priBtn = { display: "inline-flex", alignItems: "center", gap: 6, background: "var(--accent)", color: "var(--accent-fg)", border: "none", borderRadius: 8, padding: "0.52rem 1rem", fontSize: "0.84rem", fontWeight: 600, cursor: "pointer", fontFamily: "var(--font-sans)" };
+export const secBtn = { display: "inline-flex", alignItems: "center", gap: 6, background: "transparent", color: "var(--text-2)", border: "1px solid var(--border)", borderRadius: 8, padding: "0.48rem 0.9rem", fontSize: "0.82rem", fontWeight: 500, cursor: "pointer", fontFamily: "var(--font-sans)" };
+export const danBtn = { display: "inline-flex", alignItems: "center", gap: 5, background: "var(--red-bg)", color: "var(--red)", border: "1px solid var(--red)", borderRadius: 7, padding: "0.34rem 0.75rem", fontSize: "0.78rem", cursor: "pointer", fontFamily: "var(--font-sans)" };
+export const icoBtn = { display: "inline-flex", alignItems: "center", justifyContent: "center", width: 30, height: 30, background: "var(--bg-alt)", border: "1px solid var(--border)", borderRadius: 7, color: "var(--text-2)", cursor: "pointer" };
